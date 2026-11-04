@@ -9,7 +9,7 @@ function authenticate(req, res, next) {
 
   const token = authHeader.split(' ')[1];
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'artshop_jwt_secret_2026_xyz');
     req.user = decoded; // { user_id, email, role }
     next();
   } catch {

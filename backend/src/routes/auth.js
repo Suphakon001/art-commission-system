@@ -26,8 +26,8 @@ router.post('/register', async (req, res) => {
 
     const token = jwt.sign(
       { user_id: result.insertId, email, role: 'customer' },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN }
+      process.env.JWT_SECRET || 'artshop_jwt_secret_2026_xyz',
+      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
     );
     res.status(201).json({ token, role: 'customer', username });
   } catch (err) {
@@ -56,8 +56,8 @@ router.post('/login', async (req, res) => {
 
     const token = jwt.sign(
       { user_id: user.user_id, email: user.email, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN }
+      process.env.JWT_SECRET || 'artshop_jwt_secret_2026_xyz',
+      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
     );
     res.json({ token, role: user.role, username: user.username });
   } catch (err) {
