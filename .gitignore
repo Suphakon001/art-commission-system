@@ -1,6 +1,8 @@
 # ไฟล์ที่ไม่ควรอัปโหลดขึ้น Git
 node_modules/
-uploads/
+backend/uploads/slips/
+backend/uploads/references/
+backend/uploads/drafts/
 .env
 *.log
 dist/

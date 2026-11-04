@@ -29,19 +29,21 @@ function imgSrc(filename) {
         <div
           v-for="item in cart.items"
           :key="item.artwork_id"
-          class="card card-side bg-base-100 shadow border border-base-200"
+          class="card bg-base-100 shadow border border-base-200 overflow-hidden"
         >
-          <figure class="w-24 h-24 shrink-0">
-            <img :src="imgSrc(item.preview_image)" :alt="item.title" class="w-full h-full object-cover" />
-          </figure>
-          <div class="card-body p-4 flex-row items-center justify-between">
-            <div>
-              <h3 class="font-semibold text-sm">{{ item.title }}</h3>
-              <span class="badge badge-primary badge-sm">{{ item.file_format }}</span>
-            </div>
-            <div class="flex items-center gap-4">
-              <span class="font-bold text-primary">฿{{ fmt(item.price) }}</span>
-              <button class="btn btn-error btn-xs btn-outline" @click="cart.removeItem(item.artwork_id)">ลบ</button>
+          <div class="flex flex-col min-[480px]:flex-row items-center p-3 sm:p-4 gap-3 sm:gap-4">
+            <figure class="w-full min-[480px]:w-24 h-36 min-[480px]:h-24 rounded-lg overflow-hidden shrink-0">
+              <img :src="imgSrc(item.preview_image)" :alt="item.title" class="w-full h-full object-cover" />
+            </figure>
+            <div class="flex-1 w-full flex flex-col justify-between">
+              <div>
+                <h3 class="font-semibold text-sm sm:text-base">{{ item.title }}</h3>
+                <span class="badge badge-primary badge-sm mt-1">{{ item.file_format }}</span>
+              </div>
+              <div class="flex items-center justify-between mt-2 pt-2 border-t border-base-200 min-[480px]:border-none min-[480px]:pt-0">
+                <span class="font-bold text-primary text-base sm:text-lg">฿{{ fmt(item.price) }}</span>
+                <button class="btn btn-error btn-xs btn-outline" @click="cart.removeItem(item.artwork_id)">ลบ</button>
+              </div>
             </div>
           </div>
         </div>

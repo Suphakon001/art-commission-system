@@ -20,8 +20,8 @@ function logout() {
   <div class="navbar bg-primary text-primary-content shadow-lg sticky top-0 z-50 px-4">
     <!-- Logo -->
     <div class="flex-1">
-      <RouterLink to="/" class="btn btn-ghost text-xl font-bold tracking-wide flex items-center gap-2.5 px-2 hover:bg-white/10">
-        <div class="w-8 h-8 rounded-full overflow-hidden shadow ring-2 ring-white/50 shrink-0">
+      <RouterLink to="/" class="btn btn-ghost text-lg sm:text-xl font-bold tracking-wide flex items-center gap-2 sm:gap-2.5 px-1 sm:px-2 hover:bg-white/10">
+        <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden shadow ring-2 ring-white/50 shrink-0">
           <img src="/images/profile.jpg" alt="ArtShop Logo" class="w-full h-full object-cover" />
         </div>
         <span>ArtShop</span>
@@ -90,9 +90,23 @@ function logout() {
       </template>
     </div>
 
-    <!-- Mobile hamburger -->
-    <div class="md:hidden">
-      <label class="btn btn-ghost btn-sm swap swap-rotate">
+    <!-- Mobile Right Actions -->
+    <div class="flex md:hidden items-center gap-1">
+      <!-- Mobile Cart Quick Access -->
+      <RouterLink to="/cart" class="btn btn-ghost btn-circle btn-sm">
+        <div class="indicator">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 9m5-9v9m4-9v9m5-9l2 9" />
+          </svg>
+          <span v-if="cart.count > 0" class="badge badge-secondary badge-xs indicator-item font-bold">
+            {{ cart.count }}
+          </span>
+        </div>
+      </RouterLink>
+
+      <!-- Mobile hamburger -->
+      <label class="btn btn-ghost btn-sm btn-circle swap swap-rotate">
         <input type="checkbox" v-model="menuOpen" />
         <svg class="swap-off h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />

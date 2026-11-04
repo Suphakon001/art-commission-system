@@ -123,12 +123,12 @@ onUnmounted(() => {
   <!-- Floating Chat Container (Bottom Right) -->
   <div
     v-if="!(isAdmin && router.currentRoute.value.path === '/admin/chat')"
-    class="fixed bottom-5 right-5 z-50 flex flex-col items-end"
+    class="fixed bottom-3 right-3 sm:bottom-5 sm:right-5 z-50 flex flex-col items-end"
   >
     <!-- Chat Window Popup -->
     <div
       v-if="isOpen"
-      class="card w-80 sm:w-96 h-[480px] bg-base-100 shadow-2xl border border-primary/30 rounded-3xl overflow-hidden mb-3 flex flex-col animate-scaleUp"
+      class="card w-[calc(100vw-24px)] max-w-sm sm:w-96 h-[480px] max-h-[78vh] bg-base-100 shadow-2xl border border-primary/30 rounded-2xl sm:rounded-3xl overflow-hidden mb-2 sm:mb-3 flex flex-col animate-scaleUp"
     >
       <!-- Chat Header -->
       <div class="bg-gradient-to-r from-primary to-secondary text-primary-content p-3.5 flex items-center justify-between shadow-md">
@@ -271,14 +271,14 @@ onUnmounted(() => {
 
     <!-- Floating Trigger Button -->
     <button
-      class="btn btn-primary rounded-full shadow-2xl px-5 py-3 flex items-center gap-2.5 hover:scale-105 active:scale-95 transition-all text-sm font-bold border-2 border-white"
+      class="btn btn-primary rounded-full shadow-2xl px-3.5 py-2 sm:px-5 sm:py-3 flex items-center gap-1.5 sm:gap-2.5 hover:scale-105 active:scale-95 transition-all text-xs sm:text-sm font-bold border-2 border-white"
       @click="toggleChat"
     >
-      <span class="text-xl">💬</span>
+      <span class="text-base sm:text-xl">💬</span>
       <span>{{ isAdmin ? 'ศูนย์ข้อความแชท' : 'แชทกับแอดมิน' }}</span>
       <span
         v-if="unreadCount > 0"
-        class="badge badge-error badge-sm text-white font-bold animate-bounce"
+        class="badge badge-error badge-xs sm:badge-sm text-white font-bold animate-bounce"
       >
         {{ unreadCount }}
       </span>

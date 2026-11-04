@@ -26,20 +26,20 @@ onMounted(async () => {
 <template>
   <div>
     <!-- Hero -->
-    <section class="hero min-h-[70vh] bg-gradient-to-br from-primary to-secondary text-primary-content relative overflow-hidden">
+    <section class="hero min-h-[60vh] sm:min-h-[70vh] bg-gradient-to-br from-primary to-secondary text-primary-content relative overflow-hidden">
       <!-- Interactive Parallax Sparkle Background -->
       <HeroSparkleBackground />
 
-      <div class="hero-content text-center py-20 relative z-10">
-        <div class="max-w-2xl">
-          <h1 class="text-5xl font-bold mb-4">🎨 ArtShop</h1>
-          <p class="text-xl mb-6 opacity-90">
+      <div class="hero-content text-center py-12 sm:py-20 relative z-10 px-4 w-full">
+        <div class="max-w-2xl mx-auto">
+          <h1 class="text-3xl sm:text-5xl font-bold mb-3 sm:mb-4">🎨 ArtShop</h1>
+          <p class="text-base sm:text-xl mb-6 opacity-90">
             ร้านค้าภาพวาดและรับจ้างวาดภาพผลงานศิลปะ<br />
-            <span class="text-sm opacity-70">งานศิลปะคุณภาพ คัดสรรพิเศษ พร้อมจัดส่ง</span>
+            <span class="text-xs sm:text-sm opacity-70">งานศิลปะคุณภาพ คัดสรรพิเศษ พร้อมจัดส่ง</span>
           </p>
-          <div class="flex gap-4 justify-center flex-wrap">
-            <RouterLink to="/shop" class="btn btn-accent btn-lg">🛍️ เลือกซื้อภาพวาด</RouterLink>
-            <RouterLink to="/commission" class="btn btn-outline btn-lg text-white border-white hover:bg-white hover:text-primary">
+          <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center w-full max-w-sm sm:max-w-none mx-auto">
+            <RouterLink to="/shop" class="btn btn-accent btn-md sm:btn-lg w-full sm:w-auto shadow-lg">🛍️ เลือกซื้อภาพวาด</RouterLink>
+            <RouterLink to="/commission" class="btn btn-outline btn-md sm:btn-lg text-white border-white hover:bg-white hover:text-primary w-full sm:w-auto shadow-lg">
               ✏️ สั่งจ้างวาดภาพ
             </RouterLink>
           </div>

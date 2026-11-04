@@ -49,34 +49,34 @@ const price = computed(() => Number(props.artwork.price).toLocaleString('th-TH',
       </div>
     </figure>
 
-    <div class="card-body p-4">
+    <div class="card-body p-3 sm:p-4">
       <RouterLink :to="`/shop/${artwork.artwork_id}`">
-        <h2 class="card-title text-sm font-semibold line-clamp-2 hover:text-primary transition-colors">
+        <h2 class="card-title text-xs sm:text-sm font-semibold line-clamp-1 sm:line-clamp-2 hover:text-primary transition-colors">
           {{ artwork.title }}
         </h2>
       </RouterLink>
-      <p class="text-xs text-base-content/60">{{ artwork.category_name }}</p>
+      <p class="text-[11px] sm:text-xs text-base-content/60">{{ artwork.category_name }}</p>
 
-      <div class="flex items-center justify-between mt-2">
-        <span class="text-primary font-bold text-lg">฿{{ price }}</span>
+      <div class="flex flex-col min-[480px]:flex-row min-[480px]:items-center min-[480px]:justify-between gap-1.5 sm:gap-2 mt-2">
+        <span class="text-primary font-bold text-base sm:text-lg">฿{{ price }}</span>
         
         <!-- Action Button based on status -->
         <button
           v-if="isSoldOut"
-          class="btn btn-sm btn-disabled opacity-60 text-xs bg-base-300 border-none cursor-not-allowed"
+          class="btn btn-xs sm:btn-sm btn-disabled opacity-60 text-xs bg-base-300 border-none cursor-not-allowed w-full min-[480px]:w-auto"
           disabled
         >
           ✕ สินค้าหมด
         </button>
         <button
           v-else
-          class="btn btn-primary btn-sm"
+          class="btn btn-primary btn-xs sm:btn-sm w-full min-[480px]:w-auto font-medium"
           :class="{ 'btn-disabled btn-success': inCart }"
           @click="cart.addItem(artwork)"
           :disabled="inCart"
         >
           <span v-if="inCart">✓ ในตะกร้า</span>
-          <span v-else>เพิ่มลงตะกร้า</span>
+          <span v-else>+ ใส่ตะกร้า</span>
         </button>
       </div>
     </div>
