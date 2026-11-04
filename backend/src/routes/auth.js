@@ -31,8 +31,8 @@ router.post('/register', async (req, res) => {
     );
     res.status(201).json({ token, role: 'customer', username });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'เกิดข้อผิดพลาดบนเซิร์ฟเวอร์' });
+    console.error('Register error:', err);
+    res.status(500).json({ message: 'เกิดข้อผิดพลาดบนเซิร์ฟเวอร์: ' + (err.message || 'Database error') });
   }
 });
 
@@ -61,8 +61,8 @@ router.post('/login', async (req, res) => {
     );
     res.json({ token, role: user.role, username: user.username });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'เกิดข้อผิดพลาดบนเซิร์ฟเวอร์' });
+    console.error('Register error:', err);
+    res.status(500).json({ message: 'เกิดข้อผิดพลาดบนเซิร์ฟเวอร์: ' + (err.message || 'Database error') });
   }
 });
 
