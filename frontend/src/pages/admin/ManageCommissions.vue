@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import api from '@/api'
+import AdminSidebar from '@/components/AdminSidebar.vue'
 
 const commissions = ref([])
 const loading     = ref(true)
@@ -87,26 +88,36 @@ onMounted(fetchCommissions)
 </script>
 
 <template>
-  <div class="container mx-auto px-4 py-8">
-    <h1 class="text-2xl font-bold text-primary mb-6">✏️ จัดการ Commission</h1>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <AdminSidebar />
 
-    <!-- Filters -->
-    <div class="flex flex-wrap gap-2 mb-5">
-      <div class="flex gap-1">
-        <button v-for="f in ['all','pending','approved','rejected']" :key="f"
-          class="btn btn-xs" :class="filterPay===f?'btn-primary':'btn-outline'"
-          @click="filterPay=f; fetchCommissions()">
-          {{ f==='all'?'ชำระทั้งหมด':paymentMap[f]?.label }}
-        </button>
-      </div>
-      <div class="flex gap-1">
-        <button class="btn btn-xs" :class="filterWork==='all'?'btn-secondary':'btn-outline'"
-          @click="filterWork='all'; fetchCommissions()">งานทั้งหมด</button>
-        <button v-for="w in workStatuses" :key="w"
-          class="btn btn-xs" :class="filterWork===w?'btn-secondary':'btn-outline'"
-          @click="filterWork=w; fetchCommissions()">{{ w }}</button>
-      </div>
-    </div>
+      <main class="lg:col-span-9 bg-white rounded-3xl p-6 sm:p-8 border border-purple-100 shadow-soft space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-purple-100 pb-4">
+          <div>
+            <h1 class="text-xl sm:text-2xl font-bold text-slate-900">
+              จัดการคิวงาน (Manage Commissions)
+            </h1>
+            <p class="text-xs text-purple-600 font-medium mt-1">
+              ตรวจสอบสถานะงานจ้างวาดภาพ อนุมัติสลิป และส่งมอบไฟล์งาน
+            </p>
+          </div>
+
+          <!-- Filters -->
+          <div class="flex flex-wrap gap-2">
+            <div class="flex gap-1">
+              <button
+                v-for="f in ['all','pending','approved','rejected']"
+                :key="f"
+                class="px-3 py-1 rounded-full text-xs font-bold transition-all"
+                :class="filterPay===f ? 'bg-purple-700 text-white shadow-sm' : 'bg-purple-50 text-purple-700 hover:bg-purple-100'"
+                @click="filterPay=f; fetchCommissions()"
+              >
+                {{ f==='all' ? 'ชำระทั้งหมด' : paymentMap[f]?.label }}
+              </button>
+            </div>
+          </div>
+        </div>
 
     <div v-if="loading" class="flex justify-center py-16">
       <span class="loading loading-spinner loading-lg text-primary"></span>
@@ -147,12 +158,12 @@ onMounted(fetchCommissions)
             <p class="text-sm text-base-content/60 mt-1 line-clamp-3">{{ c.brief_detail }}</p>
             <p class="text-xs text-base-content/40">{{ fmtDate(c.created_at) }}</p>
             <div v-if="c.reference_image" class="mt-2">
-              <a :href="`/uploads/references/${c.reference_image}`" target="_blank" class="btn btn-xs btn-outline">ดูภาพอ้างอิง</a>
+              <a :href="c.reference_image.startsWith('data:') ? c.reference_image : `/uploads/references/${c.reference_image}`" target="_blank" class="btn btn-xs btn-outline">ดูภาพอ้างอิง</a>
             </div>
             <div v-if="c.slip_image" class="mt-1">
               <button
                 class="btn btn-xs btn-outline btn-primary gap-1"
-                @click="viewingSlip = `/uploads/slips/${c.slip_image}`"
+                @click="viewingSlip = c.slip_image.startsWith('data:') ? c.slip_image : `/uploads/slips/${c.slip_image}`"
               >
                 🔍 ดูสลิป
               </button>
@@ -191,12 +202,14 @@ onMounted(fetchCommissions)
             <!-- Draft preview -->
             <div v-if="c.draft_image">
               <p class="text-xs font-semibold mb-1">ภาพร่างล่าสุด:</p>
-              <img :src="`/uploads/drafts/${c.draft_image}`" class="rounded max-h-28 object-contain border border-base-200" />
+              <img :src="c.draft_image.startsWith('data:') ? c.draft_image : `/uploads/drafts/${c.draft_image}`" class="rounded max-h-28 object-contain border border-base-200" />
             </div>
           </div>
         </div>
       </div>
     </div>
+    </main>
+  </div>
 
     <!-- Slip Viewer Modal -->
     <dialog :class="['modal', viewingSlip ? 'modal-open' : '']">

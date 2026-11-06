@@ -48,5 +48,19 @@ router.get('/users', authenticate, requireAdmin, async (req, res) => {
   }
 });
 
+// PATCH /api/admin/users/:id/role
+router.patch('/users/:id/role', authenticate, requireAdmin, async (req, res) => {
+  const { role } = req.body;
+  if (!['admin', 'customer'].includes(role)) {
+    return res.status(400).json({ message: 'บทบาทไม่ถูกต้อง' });
+  }
+  try {
+    await pool.query('UPDATE users SET role = ? WHERE user_id = ?', [role, req.params.id]);
+    res.json({ message: 'อัปเดตบทบาทผู้ใช้สำเร็จ' });
+  } catch (err) {
+    res.status(500).json({ message: 'เกิดข้อผิดพลาด' });
+  }
+});
+
 module.exports = router;
 

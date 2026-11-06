@@ -12,6 +12,8 @@ const routes = [
   { path: '/checkout',           component: () => import('@/pages/Checkout.vue'),        meta: { requiresAuth: true } },
   { path: '/my-orders',          component: () => import('@/pages/MyOrders.vue'),        meta: { requiresAuth: true } },
   { path: '/my-commissions',     component: () => import('@/pages/MyCommissions.vue'),   meta: { requiresAuth: true } },
+  { path: '/tracking',           component: () => import('@/pages/Tracking.vue') },
+  { path: '/profile',            component: () => import('@/pages/Profile.vue'),          meta: { requiresAuth: true } },
   { path: '/login',              component: () => import('@/pages/Login.vue') },
   { path: '/register',           component: () => import('@/pages/Register.vue') },
 
@@ -20,6 +22,8 @@ const routes = [
   { path: '/admin/artworks',     component: () => import('@/pages/admin/ManageArtworks.vue'),     meta: { requiresAdmin: true } },
   { path: '/admin/commissions',  component: () => import('@/pages/admin/ManageCommissions.vue'),  meta: { requiresAdmin: true } },
   { path: '/admin/orders',       component: () => import('@/pages/admin/ManageOrders.vue'),       meta: { requiresAdmin: true } },
+  { path: '/admin/users',        component: () => import('@/pages/admin/ManageUsers.vue'),        meta: { requiresAdmin: true } },
+  { path: '/admin/reports',      component: () => import('@/pages/admin/Reports.vue'),            meta: { requiresAdmin: true } },
   { path: '/admin/settings',     component: () => import('@/pages/admin/ManageSettings.vue'),     meta: { requiresAdmin: true } },
   { path: '/admin/chat',         component: () => import('@/pages/admin/AdminChat.vue'),          meta: { requiresAdmin: true } },
 

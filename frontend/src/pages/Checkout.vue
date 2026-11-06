@@ -61,88 +61,106 @@ async function placeOrder() {
 </script>
 
 <template>
-  <div class="container mx-auto px-4 py-8 max-w-2xl">
-    <h1 class="text-3xl font-bold text-primary mb-6">💳 ชำระเงิน</h1>
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+    <div class="border-b border-purple-100 pb-4 mb-6">
+      <h1 class="text-2xl sm:text-3xl font-bold text-slate-900">
+        แจ้งชำระเงินและสั่งซื้อ (Checkout)
+      </h1>
+      <p class="text-xs text-purple-600 font-medium mt-1">
+        ตรวจสอบสรุปรายการ สแกน QR Code PromptPay และแนบหลักฐานการโอนเงิน
+      </p>
+    </div>
 
-    <div v-if="cart.count === 0" class="alert alert-warning">
-      ตะกร้าของคุณว่างเปล่า
-      <RouterLink to="/shop" class="btn btn-sm btn-primary ml-4">กลับไปเลือกสินค้า</RouterLink>
+    <div v-if="cart.count === 0" class="p-6 rounded-3xl bg-white border border-purple-100 shadow-soft text-center">
+      <p class="text-sm font-bold text-slate-800">ตะกร้าของคุณยังไม่มีสินค้า</p>
+      <RouterLink to="/shop" class="inline-block mt-3 px-5 py-2.5 rounded-full bg-purple-700 text-white text-xs font-bold">
+        กลับไปเลือกสินค้า
+      </RouterLink>
     </div>
 
     <div v-else class="space-y-6">
       <!-- Order summary -->
-      <div class="card bg-base-100 shadow border border-base-200 p-5 space-y-2">
-        <h2 class="font-bold text-lg mb-3">รายการสั่งซื้อ</h2>
-        <div v-for="item in cart.items" :key="item.artwork_id" class="flex justify-between text-sm">
+      <div class="bg-white rounded-3xl p-6 border border-purple-100 shadow-soft space-y-3">
+        <h2 class="font-bold text-base text-slate-900 mb-2">สรุปรายการสั่งซื้อ</h2>
+        <div v-for="item in cart.items" :key="item.artwork_id" class="flex justify-between text-xs sm:text-sm text-slate-700">
           <span>{{ item.title }}</span>
-          <span>฿{{ fmt(item.price) }}</span>
+          <span class="font-bold">฿{{ fmt(item.price) }}</span>
         </div>
-        <div class="divider my-2"></div>
-        <div class="flex justify-between text-sm">
-          <span>ค่าธรรมเนียมบริการ (5%)</span>
-          <span class="text-warning">฿{{ fmt(cart.serviceFee) }}</span>
+        <div class="border-t border-purple-50 my-2 pt-2 space-y-1.5 text-xs text-slate-500">
+          <div class="flex justify-between">
+            <span>ค่าธรรมเนียมบริการ (5%)</span>
+            <span class="text-purple-700 font-bold font-mono">฿{{ fmt(cart.serviceFee) }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span>ค่าจัดส่งพัสดุ</span>
+            <span class="text-slate-700 font-bold font-mono">฿{{ fmt(cart.shippingFee) }}</span>
+          </div>
         </div>
-        <div class="flex justify-between text-sm">
-          <span>ค่าจัดส่งพัสดุ</span>
-          <span class="text-info font-medium">฿{{ fmt(cart.shippingFee) }}</span>
-        </div>
-        <div class="divider my-2"></div>
-        <div class="flex justify-between font-bold text-lg text-primary">
-          <span>ยอดชำระรวม</span>
-          <span>฿{{ fmt(cart.totalAmount) }}</span>
+        <div class="border-t border-purple-100 my-2 pt-3 flex justify-between font-extrabold text-base text-slate-900">
+          <span>ยอดชำระสุทธิ</span>
+          <span class="text-purple-700 font-mono text-xl">฿{{ fmt(cart.totalAmount) }}</span>
         </div>
       </div>
 
       <!-- Shipping Information Form -->
-      <div class="card bg-base-100 shadow border border-base-200 p-5 space-y-3">
-        <h2 class="font-bold text-base text-primary flex items-center gap-1.5">
-          <span>📦 ข้อมูลสำหรับจัดส่งสินค้า (ภาพวาดชิ้นงานจริง)</span>
+      <div class="bg-white rounded-3xl p-6 border border-purple-100 shadow-soft space-y-4">
+        <h2 class="font-bold text-base text-slate-900 flex items-center gap-2">
+          <span>📦 ข้อมูลสำหรับจัดส่งสินค้า</span>
         </h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div class="form-control">
-            <label class="label pb-1"><span class="label-text font-semibold text-xs">ชื่อ-นามสกุล ผู้รับ <span class="text-error">*</span></span></label>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">ชื่อ-นามสกุล ผู้รับ <span class="text-rose-500">*</span></label>
             <input
               v-model="shippingName"
               type="text"
-              class="input input-bordered input-sm"
+              class="w-full p-2.5 rounded-xl bg-purple-50/50 border border-purple-100 outline-none text-xs text-slate-800"
               placeholder="เช่น นาย สมชาย ใจดี"
               required
             />
           </div>
-          <div class="form-control">
-            <label class="label pb-1"><span class="label-text font-semibold text-xs">เบอร์โทรศัพท์ติดต่อ <span class="text-error">*</span></span></label>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">เบอร์โทรศัพท์ติดต่อ <span class="text-rose-500">*</span></label>
             <input
               v-model="shippingPhone"
               type="tel"
-              class="input input-bordered input-sm"
+              class="w-full p-2.5 rounded-xl bg-purple-50/50 border border-purple-100 outline-none text-xs text-slate-800"
               placeholder="เช่น 081-234-5678"
               required
             />
           </div>
-        </div>
-        <div class="form-control">
-          <label class="label pb-1"><span class="label-text font-semibold text-xs">ที่อยู่สำหรับจัดส่ง (บ้านเลขที่, ถนน, ตำบล/แขวง, อำเภอ/เขต, จังหวัด, รหัสไปรษณีย์) <span class="text-error">*</span></span></label>
-          <textarea
-            v-model="shippingAddress"
-            rows="3"
-            class="textarea textarea-bordered text-xs leading-relaxed"
-            placeholder="กรอกที่อยู่จัดส่งอย่างละเอียด เพื่อความถูกต้องและรวดเร็วในการจัดส่งชิ้นงาน..."
-            required
-          ></textarea>
+          <div class="sm:col-span-2">
+            <label class="block font-bold text-slate-700 mb-1">ที่อยู่สำหรับจัดส่ง <span class="text-rose-500">*</span></label>
+            <textarea
+              v-model="shippingAddress"
+              rows="3"
+              class="w-full p-2.5 rounded-xl bg-purple-50/50 border border-purple-100 outline-none text-xs text-slate-800"
+              placeholder="บ้านเลขที่ หมู่ ซอย ถนน ตำบล อำเภอ จังหวัด รหัสไปรษณีย์"
+              required
+            ></textarea>
+          </div>
         </div>
       </div>
 
       <!-- PromptPay QR Code Payment -->
-      <PromptPayQR :amount="cart.totalAmount" account-name="นาย ศุภกร ศุภลา" promptpay-id="0823247377" />
+      <div class="bg-white rounded-3xl p-6 border border-purple-100 shadow-soft space-y-4 text-center">
+        <h2 class="font-bold text-base text-slate-900">สแกนชำระเงินผ่าน PromptPay</h2>
+        <PromptPayQR :amount="cart.totalAmount" account-name="นาย ศุภกร ศุภลา" promptpay-id="0823247377" />
+        <div class="pt-2">
+          <SlipUploader v-model="slip" :required="true" />
+        </div>
+      </div>
 
-      <!-- Interactive Slip Uploader -->
-      <SlipUploader v-model="slip" :required="true" />
+      <div v-if="error" class="p-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs">
+        {{ error }}
+      </div>
 
-      <div v-if="error" class="alert alert-error">{{ error }}</div>
-
-      <button class="btn btn-primary btn-lg w-full" @click="placeOrder" :disabled="loading">
-        <span v-if="loading" class="loading loading-spinner loading-sm"></span>
-        <span v-else>✅ ยืนยันคำสั่งซื้อ</span>
+      <button
+        @click="placeOrder"
+        :disabled="loading"
+        class="w-full py-4 rounded-2xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-sm shadow-md shadow-purple-600/20 active:scale-98 transition-all flex items-center justify-center gap-2"
+      >
+        <span v-if="loading" class="loading loading-spinner loading-xs"></span>
+        <span>ยืนยันการสั่งซื้อและส่งหลักฐานโอนเงิน</span>
       </button>
     </div>
   </div>

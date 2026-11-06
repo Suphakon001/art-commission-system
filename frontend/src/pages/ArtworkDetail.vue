@@ -1,21 +1,37 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import api from '@/api'
 import { useCartStore } from '@/stores/cart'
 import { getArtworkImg, handleImageError } from '@/utils/media'
 
 const route   = useRoute()
+const router  = useRouter()
 const cart    = useCartStore()
 const artwork = ref(null)
 const loading = ref(true)
 const error   = ref('')
+const qty     = ref(1)
+const isLiked = ref(false)
 
 const inCart  = computed(() => artwork.value && cart.isInCart(artwork.value.artwork_id))
 const imgSrc  = computed(() => getArtworkImg(artwork.value?.preview_image))
 
 function fmt(n) {
-  return Number(n).toLocaleString('th-TH', { minimumFractionDigits: 2 })
+  return Number(n).toLocaleString('th-TH')
+}
+
+function decreaseQty() {
+  if (qty.value > 1) qty.value--
+}
+
+function increaseQty() {
+  qty.value++
+}
+
+function addToCart() {
+  if (!artwork.value) return
+  cart.addItem(artwork.value)
 }
 
 onMounted(async () => {
@@ -31,134 +47,158 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
     
-    <!-- Back to Gallery -->
-    <RouterLink
-      to="/shop"
-      class="inline-flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-amber-400 mb-6 transition-colors"
-    >
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-      </svg>
-      <span>กลับไปยังแกลเลอรี</span>
-    </RouterLink>
-
-    <div v-if="loading" class="flex justify-center py-20 text-slate-400">
-      <div class="w-8 h-8 border-2 border-amber-400 border-t-transparent rounded-full animate-spin"></div>
+    <!-- Breadcrumb -->
+    <div class="flex items-center gap-2 text-xs text-slate-500 mb-6">
+      <RouterLink to="/" class="hover:text-purple-700">หน้าแรก</RouterLink>
+      <span>/</span>
+      <RouterLink to="/shop" class="hover:text-purple-700">ร้านค้า</RouterLink>
+      <span>/</span>
+      <span class="text-purple-900 font-bold truncate max-w-xs">{{ artwork?.title || 'รายละเอียดสินค้า' }}</span>
     </div>
 
-    <div v-else-if="error" class="p-4 rounded-xl bg-rose-950/40 border border-rose-800 text-rose-300 text-sm">
+    <div v-if="loading" class="flex justify-center py-20 text-purple-600">
+      <div class="w-8 h-8 border-3 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+    </div>
+
+    <div v-else-if="error" class="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-sm">
       {{ error }}
     </div>
 
-    <div v-else-if="artwork" class="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 items-start">
+    <!-- Product Detail Layout (Matching Reference 1 Product Detail) -->
+    <div v-else-if="artwork" class="bg-white rounded-3xl p-6 sm:p-8 border border-purple-100 shadow-soft grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 items-start">
       
-      <!-- Artwork Image Container -->
-      <div class="relative rounded-2xl overflow-hidden bg-slate-900 border border-slate-800 shadow-2xl">
+      <!-- Left: Big Artwork Image -->
+      <div class="relative rounded-3xl overflow-hidden bg-purple-50 border border-purple-100 shadow-sm aspect-square">
         <img
           :src="imgSrc"
           :alt="artwork.title"
           @error="handleImageError"
-          class="w-full h-auto object-cover max-h-[600px]"
+          class="w-full h-full object-cover"
         />
-        <div v-if="artwork.status === 'sold_out'" class="absolute inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <span class="px-5 py-2 rounded-full text-xs font-bold tracking-widest uppercase bg-slate-800 text-slate-300 border border-slate-700 shadow-xl">
-            ผลงานนี้จำหน่ายแล้ว
+        <div v-if="artwork.status === 'sold_out'" class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <span class="px-5 py-2 rounded-full text-xs font-bold tracking-widest uppercase bg-slate-800 text-white shadow-xl">
+            สินค้าหมดแล้ว (Sold Out)
           </span>
         </div>
       </div>
 
-      <!-- Artwork Details & Actions -->
-      <div class="flex flex-col gap-6">
+      <!-- Right: Artwork Info & Purchase (Matching Reference 1) -->
+      <div class="flex flex-col gap-5">
         
+        <!-- Title & Price -->
         <div>
-          <!-- Tags -->
-          <div class="flex flex-wrap items-center gap-2 mb-3">
-            <span
-              v-if="artwork.status !== 'sold_out'"
-              class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-950/40 text-emerald-400 border border-emerald-500/30"
-            >
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-              พร้อมจำหน่าย
-            </span>
-            <span
-              v-else
-              class="px-3 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-400 border border-slate-700"
-            >
-              จำหน่ายแล้ว
-            </span>
-            <span class="px-2.5 py-0.5 rounded-md text-xs font-mono font-semibold bg-slate-800 text-slate-300 border border-slate-700">
-              {{ artwork.file_format || 'PNG' }}
-            </span>
-            <span class="px-2.5 py-0.5 rounded-md text-xs font-medium bg-slate-900 text-slate-400 border border-slate-800">
-              {{ artwork.category_name }}
-            </span>
-          </div>
-
-          <h1 class="text-2xl sm:text-3xl font-bold text-slate-100 tracking-tight">
+          <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
             {{ artwork.title }}
           </h1>
 
-          <div class="mt-3 text-2xl sm:text-3xl font-bold font-mono text-amber-400">
-            ฿{{ fmt(artwork.price) }}
+          <div class="mt-2 text-2xl sm:text-3xl font-extrabold text-slate-900 font-sans">
+            ฿ {{ fmt(artwork.price) }}
+          </div>
+
+          <!-- Rating -->
+          <div class="flex items-center gap-2 mt-2 text-xs font-semibold text-slate-600">
+            <span class="text-amber-400 text-sm">★</span>
+            <span class="font-bold text-slate-800">5.0</span>
+            <span class="text-slate-400 font-normal">(รีวิว 24 รายการ)</span>
           </div>
         </div>
 
         <!-- Description -->
-        <div class="text-xs sm:text-sm text-slate-300 leading-relaxed border-t border-slate-800/80 pt-4">
-          <p class="whitespace-pre-line">{{ artwork.description || 'ไม่มีรายละเอียดเพิ่มเติม' }}</p>
+        <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+          {{ artwork.description || 'ภาพอนิเมะแนวนุ่มละมุน สไตล์ญี่ปุ่น ความละเอียดสูง ขนาด 4K' }}
+        </p>
+
+        <!-- Quantity Selector (Reference style: "จำนวน :  - 1 +") -->
+        <div class="flex items-center gap-4 text-xs font-bold text-slate-700">
+          <span>จำนวน :</span>
+          <div class="inline-flex items-center border border-purple-100 rounded-xl bg-purple-50/50 overflow-hidden">
+            <button
+              @click="decreaseQty"
+              class="w-8 h-8 flex items-center justify-center hover:bg-purple-100 text-slate-700 font-bold transition-colors"
+            >
+              -
+            </button>
+            <span class="w-10 text-center font-bold text-sm text-purple-950">{{ qty }}</span>
+            <button
+              @click="increaseQty"
+              class="w-8 h-8 flex items-center justify-center hover:bg-purple-100 text-slate-700 font-bold transition-colors"
+            >
+              +
+            </button>
+          </div>
         </div>
 
-        <!-- Price Breakdown Card -->
-        <div class="rounded-2xl bg-slate-900 border border-slate-800 p-4 space-y-2 text-xs">
-          <div class="flex justify-between text-slate-400">
-            <span>ราคางานศิลปะ</span>
-            <span class="text-slate-200 font-mono">฿{{ fmt(artwork.price) }}</span>
-          </div>
-          <div class="flex justify-between text-slate-400">
-            <span>ค่าธรรมเนียมแพลตฟอร์ม (5%)</span>
-            <span class="text-amber-400 font-mono">฿{{ fmt((artwork.price * 0.05).toFixed(2)) }}</span>
-          </div>
-          <div class="border-t border-slate-800 my-1 pt-2 flex justify-between font-bold text-sm">
-            <span class="text-slate-200">ยอดรวมโดยประมาณ</span>
-            <span class="text-amber-400 font-mono">฿{{ fmt((artwork.price * 1.05).toFixed(2)) }}</span>
-          </div>
-          <p class="text-[11px] text-slate-500 pt-1">* ค่าจัดส่งจะถูกคำนวณในขั้นตอนชำระเงิน</p>
-        </div>
-
-        <!-- Purchase Button -->
-        <div>
+        <!-- Action Buttons (Reference style) -->
+        <div class="flex items-center gap-3 pt-2">
           <button
             v-if="artwork.status === 'sold_out'"
             disabled
-            class="w-full py-3.5 rounded-xl text-xs sm:text-sm font-semibold bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700/50"
+            class="flex-1 py-3.5 rounded-2xl text-xs sm:text-sm font-bold bg-slate-100 text-slate-400 cursor-not-allowed"
           >
-            ผลงานนี้จำหน่ายหมดแล้ว
+            สินค้าหมดแล้ว
           </button>
           <button
             v-else
-            @click="cart.addItem(artwork)"
+            @click="addToCart"
             :disabled="inCart"
             :class="[
-              'w-full py-3.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition-all shadow-lg',
+              'flex-1 py-3.5 rounded-2xl text-xs sm:text-sm font-bold shadow-md shadow-purple-600/20 active:scale-98 transition-all',
               inCart
-                ? 'bg-slate-800 text-emerald-400 border border-emerald-500/30'
-                : 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-amber-500/10 hover:shadow-amber-500/20 active:scale-[0.99]'
+                ? 'bg-purple-100 text-purple-700 font-bold'
+                : 'bg-purple-700 hover:bg-purple-800 text-white'
             ]"
           >
-            <span v-if="inCart">อยู่ในตะกร้าผลงานแล้ว</span>
-            <template v-else>
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
-              </svg>
-              <span>เพิ่มลงในตะกร้า</span>
-            </template>
+            {{ inCart ? '✓ อยู่ในตะกร้าสินค้าแล้ว' : 'ใส่ตะกร้าสินค้า' }}
           </button>
+
+          <!-- Heart Wishlist button -->
+          <button
+            @click="isLiked = !isLiked"
+            class="w-12 h-12 rounded-2xl border border-purple-200 hover:border-purple-300 bg-white flex items-center justify-center transition-all shadow-sm"
+            :class="isLiked ? 'text-rose-500' : 'text-purple-600'"
+          >
+            <svg class="w-5 h-5" :fill="isLiked ? 'currentColor' : 'none'" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- รายละเอียดเพิ่มเติม (Exact Reference Box) -->
+        <div class="p-4 rounded-2xl bg-purple-50/60 border border-purple-100 space-y-2 mt-2">
+          <h3 class="text-xs font-bold text-purple-950 uppercase tracking-wider mb-2">รายละเอียดเพิ่มเติม</h3>
+          <ul class="space-y-1.5 text-xs text-slate-700 font-medium">
+            <li class="flex items-center gap-2">
+              <div class="w-4 h-4 rounded-full bg-purple-600 text-white flex items-center justify-center shrink-0">
+                <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                </svg>
+              </div>
+              <span>ไฟล์คุณภาพสูง {{ artwork.file_format || 'PNG' }}</span>
+            </li>
+            <li class="flex items-center gap-2">
+              <div class="w-4 h-4 rounded-full bg-purple-600 text-white flex items-center justify-center shrink-0">
+                <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                </svg>
+              </div>
+              <span>ขนาด 3840 x 2160 px (ความละเอียด 4K)</span>
+            </li>
+            <li class="flex items-center gap-2">
+              <div class="w-4 h-4 rounded-full bg-purple-600 text-white flex items-center justify-center shrink-0">
+                <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                </svg>
+              </div>
+              <span>ใช้งานได้ทั้งส่วนตัวและเชิงพาณิชย์</span>
+            </li>
+          </ul>
         </div>
 
       </div>
 
     </div>
+
   </div>
 </template>

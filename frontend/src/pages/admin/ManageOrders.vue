@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import api from '@/api'
+import AdminSidebar from '@/components/AdminSidebar.vue'
 
 const orders  = ref([])
 const loading = ref(true)
@@ -61,83 +62,107 @@ onMounted(fetchOrders)
 </script>
 
 <template>
-  <div class="container mx-auto px-4 py-8">
-    <h1 class="text-2xl font-bold text-primary mb-6">📦 จัดการคำสั่งซื้อ</h1>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <AdminSidebar />
 
-    <!-- Filter -->
-    <div class="flex gap-2 mb-5 flex-wrap">
-      <button
-        v-for="f in ['all', 'pending', 'approved', 'rejected']"
-        :key="f"
-        class="btn btn-sm"
-        :class="filter === f ? 'btn-primary' : 'btn-outline'"
-        @click="filter = f; fetchOrders()"
-      >
-        {{ f === 'all' ? 'ทั้งหมด' : statusMap[f]?.label }}
-      </button>
-    </div>
+      <main class="lg:col-span-9 bg-white rounded-3xl p-6 sm:p-8 border border-purple-100 shadow-soft space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-purple-100 pb-4">
+          <div>
+            <h1 class="text-xl sm:text-2xl font-bold text-slate-900">
+              จัดการคำสั่งซื้อ (Manage Orders)
+            </h1>
+            <p class="text-xs text-purple-600 font-medium mt-1">
+              ตรวจสอบสลิปโอนเงิน อนุมัติการชำระเงิน และอัปเดตเลขพัสดุ
+            </p>
+          </div>
 
-    <div v-if="loading" class="flex justify-center py-16">
-      <span class="loading loading-spinner loading-lg text-primary"></span>
-    </div>
+          <!-- Filter -->
+          <div class="flex gap-1.5 flex-wrap">
+            <button
+              v-for="f in ['all', 'pending', 'approved', 'rejected']"
+              :key="f"
+              class="px-3 py-1.5 rounded-full text-xs font-bold transition-all"
+              :class="filter === f ? 'bg-purple-700 text-white shadow-sm' : 'bg-purple-50 text-purple-700 hover:bg-purple-100'"
+              @click="filter = f; fetchOrders()"
+            >
+              {{ f === 'all' ? 'ทั้งหมด' : statusMap[f]?.label }}
+            </button>
+          </div>
+        </div>
 
-    <div v-else class="overflow-x-auto">
-      <table class="table table-zebra text-sm">
-        <thead>
-          <tr>
-            <th>Order ID</th><th>ลูกค้า</th><th>ที่อยู่จัดส่ง</th><th>ราคา</th>
-            <th>ค่าธรรมเนียม</th><th>ค่าจัดส่ง</th><th>ยอดรวม</th><th>สลิป</th>
-            <th>สถานะชำระ</th><th>วันที่</th><th>จัดการ</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="o in orders" :key="o.order_id">
-            <td>#{{ o.order_id }}</td>
-            <td>
-              <div class="font-semibold">{{ o.username }}</div>
-              <div class="text-xs text-base-content/50">{{ o.email }}</div>
-            </td>
-            <td>
-              <button
-                v-if="o.shipping_name"
-                class="btn btn-xs btn-outline btn-info gap-1"
-                @click="viewingShipping = { ...o }"
-              >
-                📦 ดูที่อยู่
-                <span v-if="o.tracking_number" class="badge badge-success badge-xs">ส่งแล้ว</span>
-              </button>
-              <span v-else class="text-xs text-base-content/40">-</span>
-            </td>
-            <td>฿{{ fmt(o.subtotal) }}</td>
-            <td class="text-warning">฿{{ fmt(o.service_fee) }}</td>
-            <td class="text-info">฿{{ fmt(o.shipping_fee != null ? o.shipping_fee : 50) }}</td>
-            <td class="font-bold text-primary">฿{{ fmt(o.total_amount) }}</td>
-            <td>
-              <button
-                v-if="o.slip_image"
-                class="btn btn-xs btn-outline btn-primary gap-1"
-                @click="viewingSlip = `/uploads/slips/${o.slip_image}`"
-              >
-                🔍 ดูสลิป
-              </button>
-              <span v-else class="text-base-content/40 text-xs">ไม่มี</span>
-            </td>
-            <td>
-              <span :class="['badge badge-sm', statusMap[o.payment_status]?.cls]">
-                {{ statusMap[o.payment_status]?.label }}
-              </span>
-            </td>
-            <td class="text-xs">{{ fmtDate(o.created_at) }}</td>
-            <td>
-              <div v-if="o.payment_status === 'pending'" class="flex gap-1">
-                <button class="btn btn-xs btn-success" @click="updateStatus(o.order_id, 'approved')">อนุมัติ</button>
-                <button class="btn btn-xs btn-error"   @click="updateStatus(o.order_id, 'rejected')">ปฏิเสธ</button>
-              </div>
-              <span v-else class="text-xs text-base-content/40">—</span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+        <div v-if="loading" class="flex justify-center py-16 text-purple-600">
+          <div class="w-8 h-8 border-3 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+
+        <div v-else class="overflow-x-auto">
+          <table class="w-full text-left text-xs sm:text-sm">
+            <thead>
+              <tr class="border-b border-purple-100 text-slate-500 font-bold text-xs uppercase">
+                <th class="py-3 px-2">Order ID</th>
+                <th class="py-3 px-2">ลูกค้า</th>
+                <th class="py-3 px-2">ที่อยู่จัดส่ง</th>
+                <th class="py-3 px-2">ยอดรวม</th>
+                <th class="py-3 px-2 text-center">สลิป</th>
+                <th class="py-3 px-2 text-center">สถานะ</th>
+                <th class="py-3 px-2">วันที่</th>
+                <th class="py-3 px-2 text-center">จัดการ</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-purple-50">
+              <tr v-for="o in orders" :key="o.order_id" class="hover:bg-purple-50/40 transition-colors">
+                <td class="py-3 px-2 font-mono font-bold text-slate-900">#{{ o.order_id }}</td>
+                <td class="py-3 px-2">
+                  <div class="font-bold text-slate-900">{{ o.username }}</div>
+                  <div class="text-[10px] text-slate-400 font-mono">{{ o.email }}</div>
+                </td>
+                <td class="py-3 px-2">
+                  <button
+                    v-if="o.shipping_name"
+                    class="px-2.5 py-1 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-800 font-bold text-xs"
+                    @click="viewingShipping = { ...o }"
+                  >
+                    📦 ดูที่อยู่
+                    <span v-if="o.tracking_number" class="ml-1 text-emerald-600 font-bold">✓ ส่งแล้ว</span>
+                  </button>
+                  <span v-else class="text-slate-400">-</span>
+                </td>
+                <td class="py-3 px-2 font-bold font-mono text-purple-700 whitespace-nowrap">฿{{ fmt(o.total_amount) }}</td>
+                <td class="py-3 px-2 text-center">
+                  <button
+                    v-if="o.slip_image"
+                    class="px-2.5 py-1 rounded-xl bg-purple-100 hover:bg-purple-200 text-purple-800 font-bold text-xs"
+                    @click="viewingSlip = o.slip_image.startsWith('data:') ? o.slip_image : `/uploads/slips/${o.slip_image}`"
+                  >
+                    🔍 ดูสลิป
+                  </button>
+                  <span v-else class="text-slate-400 text-xs">ไม่มี</span>
+                </td>
+                <td class="py-3 px-2 text-center">
+                  <span
+                    class="px-2.5 py-0.5 rounded-full text-[10px] font-bold"
+                    :class="o.payment_status === 'approved'
+                      ? 'bg-emerald-100 text-emerald-700'
+                      : o.payment_status === 'rejected'
+                      ? 'bg-rose-100 text-rose-700'
+                      : 'bg-amber-100 text-amber-700'"
+                  >
+                    {{ statusMap[o.payment_status]?.label }}
+                  </span>
+                </td>
+                <td class="py-3 px-2 text-[10px] text-slate-400 font-mono whitespace-nowrap">{{ fmtDate(o.created_at) }}</td>
+                <td class="py-3 px-2 text-center">
+                  <div v-if="o.payment_status === 'pending'" class="inline-flex gap-1">
+                    <button class="px-2.5 py-1 rounded-lg bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-700" @click="updateStatus(o.order_id, 'approved')">อนุมัติ</button>
+                    <button class="px-2.5 py-1 rounded-lg bg-rose-600 text-white font-bold text-xs hover:bg-rose-700" @click="updateStatus(o.order_id, 'rejected')">ปฏิเสธ</button>
+                  </div>
+                  <span v-else class="text-slate-400 text-xs">—</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </main>
     </div>
 
     <!-- Slip Viewer Modal -->

@@ -1,10 +1,23 @@
 // backend/src/initDb.js
 const pool = require('./config/db');
 const bcrypt = require('bcryptjs');
+const fs = require('fs');
+const path = require('path');
 const { createArtSvg } = require('./sampleArtworks');
 
+function getBase64Image(filename, fallbackType = 'samurai') {
+  try {
+    const fullPath = path.join(__dirname, '../../frontend/public/images', filename);
+    if (fs.existsSync(fullPath)) {
+      const buf = fs.readFileSync(fullPath);
+      return `data:image/jpeg;base64,${buf.toString('base64')}`;
+    }
+  } catch (e) {}
+  return createArtSvg(fallbackType);
+}
+
 async function initDatabase() {
-  console.log('🔄 Checking database structure & initializing...');
+  console.log('🔄 Checking database structure & initializing ArtSpace...');
   try {
     // 1. Alter columns to LONGTEXT to support Base64 images permanently
     const alterQueries = [
@@ -20,9 +33,7 @@ async function initDatabase() {
     for (const q of alterQueries) {
       try {
         await pool.query(q);
-      } catch (err) {
-        // Table or column might already be configured or table not yet created
-      }
+      } catch (err) {}
     }
     console.log('✅ Image storage columns configured to LONGTEXT');
 
@@ -32,7 +43,7 @@ async function initDatabase() {
     if (existingAdmin.length === 0) {
       await pool.query(
         'INSERT INTO users (username, email, password_hash, role) VALUES (?, ?, ?, ?)',
-        ['Admin Studio', 'admin@artshop.com', adminPasswordHash, 'admin']
+        ['Admin ArtSpace', 'admin@artshop.com', adminPasswordHash, 'admin']
       );
       console.log('✅ Created admin account: admin@artshop.com / admin1234');
     } else {
@@ -43,70 +54,121 @@ async function initDatabase() {
       console.log('✅ Admin password verified (admin@artshop.com / admin1234)');
     }
 
-    // 3. Ensure categories exist
-    const [cats] = await pool.query('SELECT COUNT(*) as count FROM categories');
-    if (cats[0].count === 0) {
-      await pool.query(`INSERT INTO categories (category_name, description) VALUES
-        ('Manga & Line Art', 'ภาพลายเส้นมังงะขาว-ดำ และงานตัดเส้นสไตล์โมเดิร์น'),
-        ('Character Illustration', 'ภาพวาดคาแรคเตอร์ดีไซน์และภาพประกอบสมบูรณ์'),
-        ('Chibi Art', 'ภาพวาดตัวละครสไตล์จิบิน่ารัก'),
-        ('Fine Art & Concept', 'ภาพวาดดิจิทัลเพนต์และคอนเซปต์อาร์ตระดับแกลเลอรี')`);
-      console.log('✅ Default categories initialized');
-    }
+    // 3. Ensure categories matching ArtSpace reference exist
+    await pool.query(`INSERT IGNORE INTO categories (category_id, category_name, description) VALUES
+      (1, 'ภาพประกอบ', 'ภาพวาดประกอบดิจิทัลอาร์ตและภาพแนวแฟนตาซี'),
+      (2, 'ภาพสไตล์อนิเมะ', 'ภาพวาดตัวละครสไตล์อนิเมะและคาแรคเตอร์ดีไซน์'),
+      (3, 'ภาพพิกเซล', 'ภาพวาดสไตล์ Pixel Art คลาสสิก'),
+      (4, 'ภาพพื้นหลัง', 'ภาพวิวทิวทัศน์ ธรรมชาติ และวิวเมืองแนวแฟนตาซี'),
+      (5, 'แฟนอาร์ต', 'ภาพวาดตัวละครจากเกม อนิเมะ และภาพยนตร์')`);
 
-    // 4. Update broken artwork images with high-aesthetic base64 artworks
-    const [allArtworks] = await pool.query('SELECT artwork_id, title, preview_image FROM artworks');
-    
-    // Check if artworks have broken filenames (e.g., sample1.png, local filenames that Render deleted)
-    for (const art of allArtworks) {
-      const isBroken = !art.preview_image || 
-        art.preview_image.startsWith('sample') || 
-        art.preview_image.endsWith('.jpg') || 
-        art.preview_image.endsWith('.png') ||
-        art.preview_image.length < 50;
+    // 4. Seed Artworks matching Reference Image 1 & 2
+    const targetArtworks = [
+      {
+        title: 'ภาพวิวเมืองยามเย็น',
+        category_id: 4,
+        price: 250.00,
+        desc: 'ภาพวิวเมืองในบรรยากาศยามเย็น แสงอาทิตย์อัสดง ความละเอียดสูง 4K',
+        file: 'art-city.jpg',
+        fallback: 'samurai'
+      },
+      {
+        title: 'ภาพชิบิ สุดน่ารัก',
+        category_id: 2,
+        price: 150.00,
+        desc: 'ภาพตัวละครจิบิสุดน่ารัก สไตล์อนิเมะสดใส เหมาะทำสติกเกอร์และอวตาร',
+        file: 'art-chibi.jpg',
+        fallback: 'chibi'
+      },
+      {
+        title: 'ภาพตัวละครแฟนตาซี',
+        category_id: 1,
+        price: 350.00,
+        desc: 'ภาพตัวละครนักรบสาวแฟนตาซี รายละเอียดประณีตและอัญมณีประกาย',
+        file: 'art-fantasy.jpg',
+        fallback: 'fantasy'
+      },
+      {
+        title: 'ภาพบ้านกลางป่า',
+        category_id: 4,
+        price: 200.00,
+        desc: 'ภาพทิวทัศน์บ้านไม้อบอุ่นท่ามกลางธรรมชาติและต้นไม้เขียวขจี',
+        file: 'art-house.jpg',
+        fallback: 'botanical'
+      },
+      {
+        title: 'ภาพสาวน้อยอนิเมะ',
+        category_id: 2,
+        price: 250.00,
+        desc: 'ภาพอนิเมะแนวนุ่มละมุน สไตล์ญี่ปุ่น ความละเอียดสูง ขนาด 4K',
+        file: 'art-anime-girl.jpg',
+        fallback: 'fantasy'
+      },
+      {
+        title: 'ภาพแมวสุดน่ารัก',
+        category_id: 2,
+        price: 150.00,
+        desc: 'ภาพน้องแมวตาโตสุดน่ารัก ลายเส้นคมชัด น่ารักอบอุ่นหัวใจ',
+        file: 'art-cat.jpg',
+        fallback: 'chibi'
+      },
+      {
+        title: 'ภาพเมืองในฝัน',
+        category_id: 4,
+        price: 200.00,
+        desc: 'ภาพทิวทัศน์เมืองไซเบอร์ผสมผสานความฝัน แสงนีออนระยิบระยับ',
+        file: 'art-city.jpg',
+        fallback: 'samurai'
+      },
+      {
+        title: 'ภาพดอกไม้สไตล์อนิเมะ',
+        category_id: 1,
+        price: 180.00,
+        desc: 'ภาพวาดดอกไม้และพฤกษศาสตร์สไตล์อนิเมะ โทนสีหวานละมุน',
+        file: 'art-anime-girl.jpg',
+        fallback: 'botanical'
+      },
+    ];
 
-      if (isBroken) {
-        let type = 'samurai';
-        if (art.title && art.title.toLowerCase().includes('chibi')) type = 'chibi';
-        else if (art.title && (art.title.toLowerCase().includes('botanica') || art.title.toLowerCase().includes('landscape'))) type = 'botanical';
-        else if (art.title && (art.title.toLowerCase().includes('girl') || art.title.toLowerCase().includes('aurora') || art.title.toLowerCase().includes('magic'))) type = 'fantasy';
-        
-        const newArtData = createArtSvg(type, art.title);
+    // Check existing artworks
+    const [existingRows] = await pool.query('SELECT artwork_id, title FROM artworks');
+    const existingTitles = new Set(existingRows.map(r => r.title));
+
+    for (const item of targetArtworks) {
+      const b64 = getBase64Image(item.file, item.fallback);
+      if (!existingTitles.has(item.title)) {
         await pool.query(
-          'UPDATE artworks SET preview_image = ?, high_res_file = ? WHERE artwork_id = ?',
-          [newArtData, newArtData, art.artwork_id]
+          `INSERT INTO artworks (category_id, title, description, price, preview_image, high_res_file, file_format, status, is_active)
+           VALUES (?, ?, ?, ?, ?, ?, 'PNG', 'available', 1)`,
+          [item.category_id, item.title, item.desc, item.price, b64, b64]
         );
-        console.log(`🖼️ Restored artwork #${art.artwork_id} (${art.title}) with permanent high-res art data`);
+        console.log(`✨ Added reference artwork: ${item.title}`);
+      } else {
+        // Update image with real crop data
+        await pool.query(
+          `UPDATE artworks SET preview_image = ?, high_res_file = ?, price = ?, description = ?
+           WHERE title = ?`,
+          [b64, b64, item.price, item.desc, item.title]
+        );
       }
     }
 
-    // If no artworks exist at all, insert 4 curated gallery artworks
-    const [artCount] = await pool.query('SELECT COUNT(*) as count FROM artworks');
-    if (artCount[0].count === 0) {
-      const [firstCat] = await pool.query('SELECT category_id FROM categories LIMIT 1');
-      const catId = firstCat[0]?.category_id || 1;
-      
-      const art1 = createArtSvg('samurai');
-      const art2 = createArtSvg('fantasy');
-      const art3 = createArtSvg('botanical');
-      const art4 = createArtSvg('chibi');
-
-      await pool.query(
-        `INSERT INTO artworks (category_id, title, description, price, preview_image, high_res_file, file_format, status, is_active) VALUES
-         (?, 'Neon Ronin: Cyber Samurai', 'ภาพประกอบสไตล์ไซเบอร์นัวร์ ลายเส้นคมชัด 4K Resolution', 650.00, ?, ?, 'PNG', 'available', 1),
-         (?, 'Celestial Guardian: Aurora', 'ภาพวาดคาแรคเตอร์สไตล์แฟนตาซีพรีเมียม สวยสง่า', 1200.00, ?, ?, 'PNG', 'available', 1),
-         (?, 'Moonlit Botanica (Fine Art)', 'งานจิตรกรรมพฤกษศาสตร์ร่วมสมัย โทนสีทองและเขียวมรกต', 850.00, ?, ?, 'PNG', 'available', 1),
-         (?, 'Artisan Cafe Chibi Barista', 'ภาพวาดจิบิน่ารัก คอนเซปต์บาริสต้า เหมาะสำหรับสะสมหรือใช้งาน', 250.00, ?, ?, 'PNG', 'available', 1)`,
-        [catId, art1, art1, catId, art2, art2, catId, art3, art3, catId, art4, art4]
-      );
-      console.log('✅ Curated sample artworks created successfully');
-    }
-
-    console.log('✨ Database initialization & image verification complete!');
+    console.log('✨ ArtSpace Database initialization complete!');
   } catch (err) {
-    console.error('⚠️ Database init error (continuing app boot):', err.message);
+    console.error('⚠️ Database init error (continuing):', err.message);
   }
 }
 
 module.exports = { initDatabase };
 
+if (require.main === module) {
+  initDatabase()
+    .then(() => {
+      console.log('✅ Done initDatabase');
+      process.exit(0);
+    })
+    .catch((err) => {
+      console.error('❌ Failed initDatabase:', err);
+      process.exit(1);
+    });
+}

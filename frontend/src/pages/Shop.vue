@@ -11,6 +11,7 @@ const artworks   = ref([])
 const categories = ref([])
 const loading    = ref(false)
 const total      = ref(0)
+const sortBy     = ref('latest')
 
 const filters = ref({
   category_id: route.query.category_id || '',
@@ -18,6 +19,16 @@ const filters = ref({
   page:        parseInt(route.query.page) || 1,
   limit:       12,
 })
+
+const shopTabs = [
+  { id: '',        name: 'ทั้งหมด' },
+  { id: 'anime',   name: 'อนิเมะ' },
+  { id: 'fanart',  name: 'แฟนอาร์ต' },
+  { id: 'bg',      name: 'ภาพพื้นหลัง' },
+  { id: 'other',   name: 'อื่นๆ' },
+]
+
+const activeTab = ref('')
 
 async function fetchArtworks() {
   loading.value = true
@@ -29,6 +40,8 @@ async function fetchArtworks() {
     artworks.value = data.data
     total.value    = data.total
     router.replace({ query: { ...params } })
+  } catch (err) {
+    console.error('Fetch artworks error:', err)
   } finally {
     loading.value = false
   }
@@ -37,9 +50,19 @@ async function fetchArtworks() {
 async function fetchCategories() {
   try {
     const { data } = await api.get('/categories')
-    categories.value = [{ category_id: '', category_name: 'ทุกหมวดหมู่' }, ...data]
+    categories.value = [{ category_id: '', category_name: 'ทั้งหมด' }, ...data]
   } catch (err) {
     console.error('Fetch categories error:', err)
+  }
+}
+
+function selectTab(tab) {
+  activeTab.value = tab.id
+  if (tab.id === '') {
+    filters.value.category_id = ''
+    filters.value.search = ''
+  } else {
+    filters.value.search = tab.name
   }
 }
 
@@ -58,114 +81,176 @@ watch(() => filters.value.page,        () => fetchArtworks())
 </script>
 
 <template>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
     
-    <!-- Gallery Editorial Header -->
-    <div class="mb-8 sm:mb-10 flex flex-col md:flex-row md:items-end md:justify-between gap-4 border-b border-slate-800 pb-6">
-      <div>
-        <span class="text-xs font-mono font-semibold uppercase tracking-widest text-amber-400">Curated Collection</span>
-        <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-slate-100 mt-1">
-          แกลเลอรีภาพวาดศิลปะ
-        </h1>
-        <p class="text-xs sm:text-sm text-slate-400 mt-1 max-w-xl">
-          เลือกชมและสะสมผลงานภาพวาดต้นฉบับคุณภาพสูง พร้อมไฟล์ดาวน์โหลดความละเอียดสูงและสิทธิ์การใช้งาน
-        </p>
-      </div>
-
-      <div class="text-xs text-slate-400 font-mono">
-        <span class="text-slate-200 font-semibold">{{ total }}</span> ผลงานทั้งหมด
-      </div>
-    </div>
-
-    <!-- Filters & Search Toolbar -->
-    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-8">
-      <!-- Search Input -->
-      <div class="relative flex-1 max-w-md">
-        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      
+      <!-- Left Sidebar Menu (Matching Reference 1 Shop Page) -->
+      <aside class="hidden lg:block lg:col-span-3 bg-white rounded-3xl p-4 border border-purple-100 shadow-soft sticky top-24">
+        <div class="flex items-center gap-2 px-3 py-2 text-purple-950 font-bold text-base mb-2">
+          <svg class="w-5 h-5 text-purple-600 fill-current" viewBox="0 0 24 24">
+            <path d="M12 2C6.49 2 2 6.49 2 12c0 4.41 3.59 8 8 8 .55 0 1-.45 1-1 0-.25-.09-.47-.26-.64-.17-.18-.27-.41-.27-.67 0-.55.45-1 1-1h1.53c4.41 0 8-3.59 8-8 0-5.51-4.49-10-10-10zm-5.5 8c-.83 0-1.5-.67-1.5-1.5S5.67 7 6.5 7s1.5.67 1.5 1.5S7.33 10 6.5 10zm3-3c-.83 0-1.5-.67-1.5-1.5S8.67 4 9.5 4s1.5.67 1.5 1.5S10.33 7 9.5 7zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 4 14.5 4s1.5.67 1.5 1.5S15.33 7 14.5 7zm3 3c-.83 0-1.5-.67-1.5-1.5S16.67 7 17.5 7s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
           </svg>
+          <span>ArtSpace</span>
         </div>
-        <input
-          v-model="filters.search"
-          type="text"
-          placeholder="ค้นหาชื่อผลงานศิลปะ..."
-          class="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-800 focus:border-amber-400 focus:outline-none rounded-xl text-xs sm:text-sm text-slate-200 placeholder-slate-500 transition-colors"
-        />
-        <button
-          v-if="filters.search"
-          @click="filters.search = ''"
-          class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-200"
-        >
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
 
-      <!-- Category Filter Dropdown -->
-      <div class="sm:w-60">
-        <select
-          v-model="filters.category_id"
-          class="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 focus:border-amber-400 focus:outline-none rounded-xl text-xs sm:text-sm text-slate-200 cursor-pointer transition-colors"
-        >
-          <option v-for="c in categories" :key="c.category_id" :value="c.category_id">
-            {{ c.category_name }}
-          </option>
-        </select>
-      </div>
-    </div>
+        <nav class="space-y-1 text-xs font-semibold">
+          <RouterLink
+            to="/"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 hover:bg-purple-50 hover:text-purple-700 transition-colors"
+          >
+            <span>🏠</span>
+            <span>หน้าหลัก</span>
+          </RouterLink>
 
-    <!-- Loading State -->
-    <div v-if="loading" class="flex flex-col items-center justify-center py-24 text-slate-400">
-      <div class="w-8 h-8 border-2 border-amber-400 border-t-transparent rounded-full animate-spin mb-3"></div>
-      <span class="text-xs tracking-wider">กำลังโหลดผลงานศิลปะ...</span>
-    </div>
+          <RouterLink
+            to="/shop"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-purple-100/90 text-purple-700 font-bold transition-colors"
+          >
+            <span>🛍️</span>
+            <span>ร้านค้า</span>
+          </RouterLink>
 
-    <!-- Empty State -->
-    <div
-      v-else-if="artworks.length === 0"
-      class="text-center py-20 px-4 rounded-2xl bg-slate-900/40 border border-slate-800/80 max-w-lg mx-auto"
-    >
-      <div class="w-12 h-12 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center mx-auto mb-4 text-slate-400">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-        </svg>
-      </div>
-      <h3 class="text-base font-semibold text-slate-200 mb-1">ไม่พบผลงานที่ตรงกัน</h3>
-      <p class="text-xs text-slate-400 mb-5">ลองปรับคำค้นหาหรือเลือกหมวดหมู่อื่นเพื่อค้นหาผลงาน</p>
-      <button
-        @click="filters.search = ''; filters.category_id = '';"
-        class="px-4 py-2 rounded-xl text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors"
-      >
-        ล้างตัวกรองทั้งหมด
-      </button>
-    </div>
+          <RouterLink
+            to="/commission"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 hover:bg-purple-50 hover:text-purple-700 transition-colors"
+          >
+            <span>✏️</span>
+            <span>Commission</span>
+          </RouterLink>
 
-    <!-- Responsive Art Gallery Grid (2-cols on mobile, 3-cols on tablet, 4-cols on desktop) -->
-    <div v-else class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-6">
-      <ArtworkCard v-for="a in artworks" :key="a.artwork_id" :artwork="a" />
-    </div>
+          <RouterLink
+            to="/tracking"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 hover:bg-purple-50 hover:text-purple-700 transition-colors"
+          >
+            <span>📋</span>
+            <span>ติดตามงาน</span>
+          </RouterLink>
 
-    <!-- Pagination -->
-    <div v-if="totalPages() > 1" class="flex justify-center items-center mt-12 gap-2">
-      <button
-        class="px-3 py-1.5 rounded-lg text-xs bg-slate-900 border border-slate-800 text-slate-300 hover:border-slate-700 disabled:opacity-40 disabled:cursor-not-allowed"
-        :disabled="filters.page <= 1"
-        @click="filters.page--"
-      >
-        ย้อนกลับ
-      </button>
-      <span class="px-3 py-1.5 rounded-lg text-xs font-mono text-slate-400">
-        {{ filters.page }} / {{ totalPages() }}
-      </span>
-      <button
-        class="px-3 py-1.5 rounded-lg text-xs bg-slate-900 border border-slate-800 text-slate-300 hover:border-slate-700 disabled:opacity-40 disabled:cursor-not-allowed"
-        :disabled="filters.page >= totalPages()"
-        @click="filters.page++"
-      >
-        ถัดไป
-      </button>
+          <RouterLink
+            to="/checkout"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 hover:bg-purple-50 hover:text-purple-700 transition-colors"
+          >
+            <span>💳</span>
+            <span>แจ้งชำระเงิน</span>
+          </RouterLink>
+
+          <RouterLink
+            to="/profile"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 hover:bg-purple-50 hover:text-purple-700 transition-colors"
+          >
+            <span>👤</span>
+            <span>โปรไฟล์</span>
+          </RouterLink>
+        </nav>
+      </aside>
+
+      <!-- Main Shop Content Area (Matching Reference 1) -->
+      <main class="lg:col-span-9 space-y-4">
+        
+        <!-- Search, Category Tabs, Sort Filter Row -->
+        <div class="bg-white rounded-3xl p-4 border border-purple-100 shadow-soft space-y-3">
+          
+          <!-- Top: Search Bar -->
+          <div class="relative w-full">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-purple-400">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <input
+              v-model="filters.search"
+              type="text"
+              placeholder="ค้นหาสินค้า..."
+              class="w-full pl-10 pr-4 py-2 bg-purple-50/50 border border-purple-100 rounded-full text-xs sm:text-sm text-slate-800 placeholder-purple-400 outline-none focus:bg-white focus:border-purple-400 transition-colors"
+            />
+          </div>
+
+          <!-- Bottom: Category Filter Tabs & Sort Dropdown (Reference Style) -->
+          <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
+            
+            <!-- Category Tabs -->
+            <div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+              <button
+                v-for="tab in shopTabs"
+                :key="tab.id"
+                @click="selectTab(tab)"
+                class="px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap"
+                :class="activeTab === tab.id
+                  ? 'bg-purple-600 text-white shadow-sm'
+                  : 'bg-purple-50 text-purple-700 hover:bg-purple-100'"
+              >
+                {{ tab.name }}
+              </button>
+            </div>
+
+            <!-- Sort Dropdown -->
+            <div class="flex items-center gap-2 shrink-0 text-xs text-slate-600">
+              <span class="text-slate-500 font-medium hidden sm:inline">เรียงตาม:</span>
+              <select
+                v-model="sortBy"
+                class="px-3 py-1.5 rounded-full bg-purple-50/60 border border-purple-100 text-xs font-medium text-slate-700 outline-none cursor-pointer"
+              >
+                <option value="latest">ล่าสุด</option>
+                <option value="price_asc">ราคา: ต่ำ - สูง</option>
+                <option value="price_desc">ราคา: สูง - ต่ำ</option>
+              </select>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- Loading State -->
+        <div v-if="loading" class="flex justify-center py-20 text-purple-600">
+          <div class="w-8 h-8 border-3 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+
+        <!-- Empty State -->
+        <div v-else-if="artworks.length === 0" class="text-center py-20 px-4 rounded-3xl bg-white border border-purple-100 shadow-soft">
+          <div class="text-4xl mb-3">🎨</div>
+          <h3 class="text-base font-bold text-slate-800 mb-1">ไม่พบผลงานที่ตรงกัน</h3>
+          <p class="text-xs text-slate-500 mb-4">ลองปรับคำค้นหาหรือเลือกหมวดหมู่อื่น</p>
+          <button
+            @click="filters.search = ''; activeTab = '';"
+            class="px-4 py-2 rounded-xl text-xs font-semibold bg-purple-700 text-white"
+          >
+            แสดงผลงานทั้งหมด
+          </button>
+        </div>
+
+        <!-- 3 Columns Artwork Cards Grid (Matching Reference 1 Shop Page) -->
+        <div v-else class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <ArtworkCard
+            v-for="a in artworks"
+            :key="a.artwork_id"
+            :artwork="a"
+          />
+        </div>
+
+        <!-- Pagination -->
+        <div v-if="totalPages() > 1" class="flex justify-center items-center mt-8 gap-2">
+          <button
+            class="px-3 py-1.5 rounded-xl text-xs bg-white border border-purple-100 text-purple-700 hover:bg-purple-50 disabled:opacity-40"
+            :disabled="filters.page <= 1"
+            @click="filters.page--"
+          >
+            « ก่อนหน้า
+          </button>
+          <span class="px-3 py-1.5 rounded-xl text-xs font-bold text-purple-900 bg-purple-100">
+            {{ filters.page }} / {{ totalPages() }}
+          </span>
+          <button
+            class="px-3 py-1.5 rounded-xl text-xs bg-white border border-purple-100 text-purple-700 hover:bg-purple-50 disabled:opacity-40"
+            :disabled="filters.page >= totalPages()"
+            @click="filters.page++"
+          >
+            ถัดไป »
+          </button>
+        </div>
+
+      </main>
+
     </div>
 
   </div>
