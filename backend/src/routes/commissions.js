@@ -3,7 +3,6 @@ const router   = require('express').Router();
 const pool     = require('../config/db');
 const { authenticate, requireAdmin } = require('../middleware/auth');
 const { uploadSlip, uploadReference, uploadDraft, uploadCommission } = require('../middleware/upload');
-const multer   = require('multer');
 
 const FEE_RATE = parseFloat(process.env.SERVICE_FEE_RATE || '0.05');
 

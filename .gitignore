@@ -6,4 +6,7 @@ backend/uploads/drafts/
 .env
 *.log
 dist/
+frontend/dist/
+.DS_Store
+Thumbs.db
 
