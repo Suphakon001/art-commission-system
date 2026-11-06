@@ -1,12 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
 import api from '@/api'
 import { getArtworkImg, handleImageError } from '@/utils/media'
-
-const router = useRouter()
-const auth   = useAuthStore()
 
 const artworks   = ref([])
 const categories = ref([])
