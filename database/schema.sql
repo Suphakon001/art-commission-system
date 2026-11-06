@@ -48,6 +48,7 @@ CREATE TABLE orders (
     user_id          INT NOT NULL,
     subtotal         DECIMAL(10, 2) NOT NULL,
     service_fee      DECIMAL(10, 2) NOT NULL,
+    shipping_fee     DECIMAL(10, 2) NOT NULL DEFAULT 50.00,
     total_amount     DECIMAL(10, 2) NOT NULL,
     slip_image       VARCHAR(255),
     payment_status   ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
