@@ -58,8 +58,25 @@ router.post('/', authenticate, uploadCommission, async (req, res) => {
     const service_fee = parseFloat((base_amount * FEE_RATE).toFixed(2));
     const total_amount = parseFloat((base_amount + service_fee).toFixed(2));
 
-    const refImage   = req.files?.reference_image?.[0]?.filename || null;
-    const slipImage  = req.files?.slip_image?.[0]?.filename      || null;
+    let refImage = null;
+    if (req.files?.reference_image?.[0]) {
+      try {
+        const file = req.files.reference_image[0];
+        refImage = `data:${file.mimetype};base64,${fs.readFileSync(file.path).toString('base64')}`;
+      } catch (e) {
+        refImage = req.files.reference_image[0].filename;
+      }
+    }
+
+    let slipImage = null;
+    if (req.files?.slip_image?.[0]) {
+      try {
+        const file = req.files.slip_image[0];
+        slipImage = `data:${file.mimetype};base64,${fs.readFileSync(file.path).toString('base64')}`;
+      } catch (e) {
+        slipImage = req.files.slip_image[0].filename;
+      }
+    }
 
     const [result] = await pool.query(
       `INSERT INTO commissions
@@ -127,9 +144,14 @@ router.patch('/:id/slip', authenticate, uploadSlip.single('slip_image'), async (
     if (rows[0].user_id !== req.user.user_id)
       return res.status(403).json({ message: 'ไม่มีสิทธิ์' });
 
+    let slipData = req.file.filename;
+    try {
+      slipData = `data:${req.file.mimetype};base64,${fs.readFileSync(req.file.path).toString('base64')}`;
+    } catch (e) {}
+
     await pool.query(
       'UPDATE commissions SET slip_image = ?, payment_status = "pending" WHERE commission_id = ?',
-      [req.file.filename, req.params.id]
+      [slipData, req.params.id]
     );
     res.json({ message: 'อัปโหลดสลิปสำเร็จ' });
   } catch (err) {
@@ -195,9 +217,14 @@ router.patch('/:id/status', authenticate, requireAdmin, async (req, res) => {
 router.patch('/:id/upload-draft', authenticate, requireAdmin, uploadDraft.single('draft_image'), async (req, res) => {
   if (!req.file) return res.status(400).json({ message: 'กรุณาแนบไฟล์' });
   try {
+    let draftData = req.file.filename;
+    try {
+      draftData = `data:${req.file.mimetype};base64,${fs.readFileSync(req.file.path).toString('base64')}`;
+    } catch (e) {}
+
     await pool.query(
       'UPDATE commissions SET draft_image = ? WHERE commission_id = ?',
-      [req.file.filename, req.params.id]
+      [draftData, req.params.id]
     );
     res.json({ message: 'อัปโหลดร่างสำเร็จ' });
   } catch (err) {
@@ -209,9 +236,14 @@ router.patch('/:id/upload-draft', authenticate, requireAdmin, uploadDraft.single
 router.patch('/:id/upload-final', authenticate, requireAdmin, uploadDraft.single('final_file'), async (req, res) => {
   if (!req.file) return res.status(400).json({ message: 'กรุณาแนบไฟล์สุดท้าย' });
   try {
+    let finalData = req.file.filename;
+    try {
+      finalData = `data:${req.file.mimetype};base64,${fs.readFileSync(req.file.path).toString('base64')}`;
+    } catch (e) {}
+
     await pool.query(
       'UPDATE commissions SET final_file = ?, work_status = "เสร็จสมบูรณ์" WHERE commission_id = ?',
-      [req.file.filename, req.params.id]
+      [finalData, req.params.id]
     );
     res.json({ message: 'อัปโหลดงานสุดท้ายสำเร็จ' });
   } catch (err) {

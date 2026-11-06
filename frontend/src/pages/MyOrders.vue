@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import api from '@/api'
+import { getArtworkImg, handleImageError } from '@/utils/media'
 
 const route   = useRoute()
 const orders  = ref([])
@@ -20,6 +21,13 @@ function fmt(n) {
 
 function fmtDate(d) {
   return new Date(d).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+}
+
+function getDownloadUrl(item, order) {
+  if (item.high_res_file && item.high_res_file.startsWith('data:')) {
+    return item.high_res_file
+  }
+  return `/api/orders/${order.order_id}/artworks/${item.artwork_id}/download`
 }
 
 onMounted(async () => {
@@ -105,9 +113,10 @@ onMounted(async () => {
             >
               <div class="flex items-center gap-3">
                 <img
-                  :src="`/uploads/artworks/${item.preview_image}`"
+                  :src="getArtworkImg(item.preview_image)"
                   :alt="item.title"
-                  class="w-12 h-12 object-cover rounded-lg"
+                  @error="handleImageError"
+                  class="w-12 h-12 object-cover rounded-lg bg-slate-900 border border-slate-800"
                 />
                 <div>
                   <h4 class="font-bold text-sm text-base-content">{{ item.title }}</h4>
@@ -115,12 +124,12 @@ onMounted(async () => {
                 </div>
               </div>
               <a
-                :href="`/uploads/artworks/${item.high_res_file}`"
+                :href="getDownloadUrl(item, order)"
                 :download="`${item.title}.${item.file_format?.toLowerCase() || 'png'}`"
                 target="_blank"
                 class="btn btn-success btn-sm gap-1 text-white shadow-sm"
               >
-                ⬇️ ดาวน์โหลดไฟล์เต็ม
+                ดาวน์โหลดไฟล์เต็ม
               </a>
             </div>
           </div>

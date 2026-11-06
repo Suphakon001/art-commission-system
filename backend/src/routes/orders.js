@@ -26,7 +26,14 @@ router.post(
     if (!shipping_phone?.trim())   return res.status(400).json({ message: 'กรุณาระบุเบอร์โทรศัพท์สำหรับจัดส่ง' });
     if (!shipping_address?.trim()) return res.status(400).json({ message: 'กรุณาระบุที่อยู่สำหรับจัดส่ง' });
 
-    const slipFilename = req.file?.filename || null;
+    let slipFilename = null;
+    if (req.file) {
+      try {
+        slipFilename = `data:${req.file.mimetype};base64,${fs.readFileSync(req.file.path).toString('base64')}`;
+      } catch (e) {
+        slipFilename = req.file.filename;
+      }
+    }
 
     const conn = await pool.getConnection();
     try {
@@ -137,6 +144,17 @@ router.get('/:id/download/:artwork_id', authenticate, async (req, res) => {
     );
     if (!items.length) return res.status(404).json({ message: 'ไม่พบผลงานในคำสั่งซื้อนี้' });
 
+    const highRes = items[0].high_res_file;
+    if (highRes && highRes.startsWith('data:')) {
+      const parts = highRes.split(';base64,');
+      const mime = parts[0].replace('data:', '') || 'image/png';
+      const imgBuffer = Buffer.from(parts[1], 'base64');
+      const ext = items[0].file_format ? items[0].file_format.toLowerCase() : 'png';
+      res.setHeader('Content-Type', mime);
+      res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(items[0].title)}.${ext}"`);
+      return res.send(imgBuffer);
+    }
+
     const filePath = path.join(__dirname, '../../uploads/artworks', items[0].high_res_file);
     if (!fs.existsSync(filePath)) return res.status(404).json({ message: 'ไม่พบไฟล์ต้นฉบับบนเซิร์ฟเวอร์' });
 
@@ -178,9 +196,14 @@ router.patch('/:id/slip', authenticate, uploadSlip.single('slip_image'), async (
     if (orders[0].user_id !== req.user.user_id)
       return res.status(403).json({ message: 'ไม่มีสิทธิ์เข้าถึง' });
 
+    let slipData = req.file.filename;
+    try {
+      slipData = `data:${req.file.mimetype};base64,${fs.readFileSync(req.file.path).toString('base64')}`;
+    } catch (e) {}
+
     await pool.query(
       'UPDATE orders SET slip_image = ?, payment_status = "pending" WHERE order_id = ?',
-      [req.file.filename, req.params.id]
+      [slipData, req.params.id]
     );
     res.json({ message: 'อัปโหลดสลิปสำเร็จ' });
   } catch (err) {

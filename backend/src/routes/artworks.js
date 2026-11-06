@@ -77,8 +77,23 @@ router.post(
     if (!req.files?.preview_image) return res.status(400).json({ message: 'กรุณาแนบภาพตัวอย่าง (Preview)' });
     if (!req.files?.high_res_file) return res.status(400).json({ message: 'กรุณาแนบไฟล์ความละเอียดสูง (High-Res File)' });
 
-    const preview = req.files.preview_image[0].filename;
-    const highRes = req.files.high_res_file[0].filename;
+    let preview = req.files.preview_image[0].filename;
+    try {
+      const pFile = req.files.preview_image[0];
+      const b64 = fs.readFileSync(pFile.path).toString('base64');
+      preview = `data:${pFile.mimetype};base64,${b64}`;
+    } catch (e) {
+      console.error('Base64 preview error:', e);
+    }
+
+    let highRes = req.files.high_res_file[0].filename;
+    try {
+      const hFile = req.files.high_res_file[0];
+      const b64 = fs.readFileSync(hFile.path).toString('base64');
+      highRes = `data:${hFile.mimetype};base64,${b64}`;
+    } catch (e) {
+      console.error('Base64 highRes error:', e);
+    }
     const active = (is_active === '0' || is_active === 0 || is_active === false || is_active === 'false') ? 0 : 1;
 
     try {
@@ -114,8 +129,25 @@ router.put(
       );
       if (!current.length) return res.status(404).json({ message: 'ไม่พบผลงาน' });
 
-      const preview = req.files?.preview_image?.[0]?.filename || current[0].preview_image;
-      const highRes = req.files?.high_res_file?.[0]?.filename  || current[0].high_res_file;
+      let preview = current[0].preview_image;
+      if (req.files?.preview_image?.[0]) {
+        try {
+          const pFile = req.files.preview_image[0];
+          preview = `data:${pFile.mimetype};base64,${fs.readFileSync(pFile.path).toString('base64')}`;
+        } catch (e) {
+          preview = req.files.preview_image[0].filename;
+        }
+      }
+
+      let highRes = current[0].high_res_file;
+      if (req.files?.high_res_file?.[0]) {
+        try {
+          const hFile = req.files.high_res_file[0];
+          highRes = `data:${hFile.mimetype};base64,${fs.readFileSync(hFile.path).toString('base64')}`;
+        } catch (e) {
+          highRes = req.files.high_res_file[0].filename;
+        }
+      }
       const finalStatus = status || current[0].status || 'available';
       const active = (is_active === '0' || is_active === 0 || is_active === false || is_active === 'false') ? 0 : 1;
 

@@ -14,19 +14,37 @@ const settingsRouter    = require('./routes/settings');
 const adminRouter       = require('./routes/admin');
 const chatRouter        = require('./routes/chat');
 
+const { initDatabase } = require('./initDb');
+const { createArtSvg } = require('./sampleArtworks');
+
 const app  = express();
 const PORT = process.env.PORT || 5000;
 
 // ── Middleware ────────────────────────────────────────────
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:4173'],
+  origin: true,
   credentials: true,
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// ── Static files (uploaded images) ───────────────────────
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+// ── Static files & Missing image fallback ─────────────────
+const uploadsDir = path.join(__dirname, '../uploads');
+app.use('/uploads', express.static(uploadsDir));
+
+// Fallback for missing artwork images so Render never returns a broken 404
+app.get('/uploads/artworks/:filename', (req, res) => {
+  const filePath = path.join(uploadsDir, 'artworks', req.params.filename);
+  if (fs.existsSync(filePath)) {
+    return res.sendFile(filePath);
+  }
+  // Return sleek vector SVG art fallback
+  const svgData = createArtSvg('samurai', 'ArtShop Gallery');
+  const base64 = svgData.split(';base64,')[1];
+  const imgBuffer = Buffer.from(base64, 'base64');
+  res.setHeader('Content-Type', 'image/svg+xml');
+  res.send(imgBuffer);
+});
 
 // ── API Routes ───────────────────────────────────────────
 app.use('/api/auth',        authRouter);
@@ -59,7 +77,8 @@ app.use((err, req, res, next) => {
   res.status(err.status || 500).json({ message: err.message || 'Internal Server Error' });
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
+  await initDatabase();
 });
 

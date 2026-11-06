@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import api from '@/api'
+import { getArtworkImg, handleImageError } from '@/utils/media'
 
 const artworks   = ref([])
 const categories = ref([])
@@ -162,7 +163,12 @@ onMounted(fetchAll)
           <tr v-for="a in artworks" :key="a.artwork_id">
             <td>{{ a.artwork_id }}</td>
             <td>
-              <img :src="`/uploads/artworks/${a.preview_image}`" class="w-12 h-12 object-cover rounded-btn shadow-sm" />
+              <img
+                :src="getArtworkImg(a.preview_image)"
+                :alt="a.title"
+                @error="handleImageError"
+                class="w-12 h-12 object-cover rounded-xl bg-slate-900 border border-slate-800 shadow-sm"
+              />
             </td>
             <td class="max-w-xs truncate font-medium">{{ a.title }}</td>
             <td>{{ a.category_name }}</td>

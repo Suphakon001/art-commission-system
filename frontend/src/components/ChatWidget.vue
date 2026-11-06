@@ -128,26 +128,24 @@ onUnmounted(() => {
     <!-- Chat Window Popup -->
     <div
       v-if="isOpen"
-      class="card w-[calc(100vw-24px)] max-w-sm sm:w-96 h-[480px] max-h-[78vh] bg-base-100 shadow-2xl border border-primary/30 rounded-2xl sm:rounded-3xl overflow-hidden mb-2 sm:mb-3 flex flex-col animate-scaleUp"
+      class="w-[calc(100vw-24px)] max-w-sm sm:w-96 h-[480px] max-h-[78vh] bg-slate-900 shadow-2xl border border-slate-800 rounded-2xl sm:rounded-3xl overflow-hidden mb-2 sm:mb-3 flex flex-col animate-scaleUp"
     >
       <!-- Chat Header -->
-      <div class="bg-gradient-to-r from-primary to-secondary text-primary-content p-3.5 flex items-center justify-between shadow-md">
+      <div class="bg-slate-950 border-b border-slate-800 text-slate-100 p-3.5 flex items-center justify-between shadow-md">
         <div class="flex items-center gap-2.5">
-          <div class="avatar">
-            <div class="w-10 h-10 rounded-full ring-2 ring-white/50 overflow-hidden shadow">
-              <img src="/images/profile.jpg" alt="ArtShop Admin" class="w-full h-full object-cover" />
-            </div>
+          <div class="w-9 h-9 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-amber-400 font-bold text-xs">
+            A
           </div>
           <div>
-            <h4 class="font-bold text-sm leading-tight">ArtShop Studio & Admin</h4>
-            <span class="text-[11px] text-white/80 flex items-center gap-1">
-              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              แอดมินออนไลน์ พร้อมตอบแชท
+            <h4 class="font-bold text-sm leading-tight text-slate-100">ArtShop Studio Support</h4>
+            <span class="text-[11px] text-slate-400 flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              สตูดิโอออนไลน์ พร้อมให้คำแนะนำ
             </span>
           </div>
         </div>
         <button
-          class="btn btn-ghost btn-circle btn-xs text-white hover:bg-white/20"
+          class="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
           @click="isOpen = false"
         >
           ✕
@@ -271,14 +269,16 @@ onUnmounted(() => {
 
     <!-- Floating Trigger Button -->
     <button
-      class="btn btn-primary rounded-full shadow-2xl px-3.5 py-2 sm:px-5 sm:py-3 flex items-center gap-1.5 sm:gap-2.5 hover:scale-105 active:scale-95 transition-all text-xs sm:text-sm font-bold border-2 border-white"
+      class="rounded-full shadow-2xl px-4 py-2.5 sm:px-5 sm:py-3 flex items-center gap-2 hover:scale-105 active:scale-95 transition-all text-xs sm:text-sm font-semibold bg-amber-500 hover:bg-amber-400 text-slate-950 border border-amber-300/40 shadow-amber-500/20"
       @click="toggleChat"
     >
-      <span class="text-base sm:text-xl">💬</span>
-      <span>{{ isAdmin ? 'ศูนย์ข้อความแชท' : 'แชทกับแอดมิน' }}</span>
+      <svg class="w-4 h-4 sm:w-5 sm:h-5 fill-current" viewBox="0 0 24 24">
+        <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/>
+      </svg>
+      <span>{{ isAdmin ? 'ศูนย์ข้อความ' : 'ปรึกษาสตูดิโอ' }}</span>
       <span
         v-if="unreadCount > 0"
-        class="badge badge-error badge-xs sm:badge-sm text-white font-bold animate-bounce"
+        class="bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full animate-bounce"
       >
         {{ unreadCount }}
       </span>
