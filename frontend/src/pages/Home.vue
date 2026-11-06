@@ -48,30 +48,35 @@ onMounted(async () => {
 <template>
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-6 space-y-6">
     
-    <!-- Hero Banner (Exact match to Reference 2) -->
-    <section class="relative rounded-3xl overflow-hidden shadow-sm border border-purple-100 bg-gradient-to-r from-purple-950 via-purple-900 to-indigo-950 text-white min-h-[220px] sm:min-h-[260px] flex items-center">
-      <!-- Background Graphic if available -->
+    <!-- Hero Banner (Clean AI-generated illustration with sharp UI overlay) -->
+    <section class="relative rounded-3xl overflow-hidden shadow-soft border border-purple-100/80 bg-purple-950 text-white min-h-[220px] sm:min-h-[270px] flex items-center">
+      <!-- Background Graphic (Clean illustration without text) -->
       <img
         src="/images/hero-banner.jpg"
         alt="ArtSpace Banner"
-        class="absolute inset-0 w-full h-full object-cover object-center opacity-95 mix-blend-screen pointer-events-none"
-        @error="$event.target.style.display='none'"
+        class="absolute inset-0 w-full h-full object-cover object-left md:object-center pointer-events-none"
       />
+
+      <!-- Soft right-side gradient overlay for crisp text contrast -->
+      <div class="absolute inset-0 bg-gradient-to-r from-transparent via-purple-950/20 to-purple-950/70 sm:to-purple-950/60 pointer-events-none"></div>
       
       <!-- Overlay Content for sharp readability & responsiveness -->
-      <div class="relative z-10 w-full p-6 sm:p-10 flex flex-col items-end text-right ml-auto max-w-2xl">
-        <h2 class="text-xl sm:text-3xl font-black text-amber-200 tracking-wide font-sans drop-shadow-md">
-          "ร้านค้าออนไลน์สำหรับคนรักงานศิลปะ"
+      <div class="relative z-10 w-full p-6 sm:p-10 flex flex-col items-end text-right ml-auto max-w-xl">
+        <span class="text-xs sm:text-sm font-bold text-purple-200 tracking-wider mb-1 flex items-center gap-1.5 drop-shadow">
+          <span class="text-amber-300">✦</span> ร้านค้าออนไลน์ & รับจ้างวาดภาพ
+        </span>
+        <h2 class="text-xl sm:text-3xl lg:text-4xl font-extrabold text-white tracking-tight drop-shadow-lg leading-tight font-sans">
+          "ร้านค้าออนไลน์<br class="hidden sm:inline" />สำหรับคนรักงานศิลปะ"
         </h2>
-        <p class="text-xs sm:text-base text-purple-100 mt-2 font-medium drop-shadow">
+        <p class="text-xs sm:text-sm text-purple-100/90 mt-2 font-medium drop-shadow-md max-w-md">
           ซื้อผลงานศิลปะ • สั่งจ้างวาดภาพ (Commission) ได้ในที่เดียว!
         </p>
         <RouterLink
           to="/shop"
-          class="mt-4 px-6 py-2.5 rounded-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white font-semibold text-xs sm:text-sm shadow-lg shadow-purple-900/40 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 border border-purple-400/30"
+          class="mt-4 px-6 py-2.5 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs sm:text-sm shadow-lg shadow-purple-900/50 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 border border-purple-300/30"
         >
           <span>เริ่มเลือกชมผลงาน</span>
-          <span>→</span>
+          <span class="text-base leading-none">→</span>
         </RouterLink>
       </div>
     </section>

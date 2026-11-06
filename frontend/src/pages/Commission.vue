@@ -171,7 +171,6 @@ onMounted(() => {
                 src="/images/art-anime-girl.jpg"
                 alt="Artist Mascot"
                 class="w-full h-full object-cover"
-                @error="$event.target.src='/images/reference-home.jpg'"
               />
               <div class="absolute bottom-3 left-3 right-3 bg-white/90 backdrop-blur-md rounded-2xl p-2.5 text-center text-xs text-purple-950 font-bold border border-purple-100 shadow-sm">
                 Yuki_Art Studio

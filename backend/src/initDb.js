@@ -116,16 +116,16 @@ async function initDatabase() {
         title: 'ภาพเมืองในฝัน',
         category_id: 4,
         price: 200.00,
-        desc: 'ภาพทิวทัศน์เมืองไซเบอร์ผสมผสานความฝัน แสงนีออนระยิบระยับ',
-        file: 'art-city.jpg',
+        desc: 'ภาพทิวทัศน์เมืองลอยฟ้าในจินตนาการ ปราสาทและโคมไฟลอย ท่ามกลางหมู่เมฆสีม่วงยามเย็น',
+        file: 'art-dream-city.jpg',
         fallback: 'samurai'
       },
       {
         title: 'ภาพดอกไม้สไตล์อนิเมะ',
         category_id: 1,
         price: 180.00,
-        desc: 'ภาพวาดดอกไม้และพฤกษศาสตร์สไตล์อนิเมะ โทนสีหวานละมุน',
-        file: 'art-anime-girl.jpg',
+        desc: 'ภาพวาดสาวน้อยและดอกไม้พฤกษศาสตร์สไตล์อนิเมะ โทนสีหวานละมุน',
+        file: 'art-flower-anime.jpg',
         fallback: 'botanical'
       },
     ];
